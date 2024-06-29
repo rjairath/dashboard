@@ -1,5 +1,6 @@
 import { getDate } from '@/utils';
 import { redis } from '../lib/redis';
+import { parse } from 'date-fns';
 
 interface AnalyticsArgs {
     retention?: number;
@@ -24,11 +25,33 @@ class Analytics {
         }
     }
 
+    async retrieveDays(namespace: string, nDays: number) {
+        type AnalyticsPromise = ReturnType<typeof analytics.retrieve>;
+        const promises: AnalyticsPromise[] = [];
+
+        for(let i=0; i<nDays; i++) {
+            const formattedDate = getDate(i);
+            const promise = analytics.retrieve(namespace, formattedDate); 
+            promises.push(promise);
+        }
+
+        const fetchedRes = await Promise.all(promises);
+
+        // Sort in increasing order
+        fetchedRes.sort((a,b) => {
+            if(parse(a.date, "dd/MM/yyyy", new Date()) > parse(b.date, "dd/MM/yyyy", new Date())) {
+                return 1;
+            } else {
+                return -1;
+            }
+        })
+
+        return fetchedRes;
+    }
+
     async retrieve(namespace: string, date: string) {
         let key = `analytics::${namespace}::${date}`;
         const res = await redis.hgetall(key);
-        
-        console.log(res, "res...")
 
         return {
             date,
