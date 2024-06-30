@@ -6,11 +6,13 @@ import { BarChart, Card } from '@tremor/react';
 const AnalyticsDashboard = ({
     avgVisitorsPerDay = '0.0',
     totalVisitors = 0,
-    timeSeriesPageviews
+    timeSeriesPageviews,
+    trackingDays
 }: {
     avgVisitorsPerDay?: string;
     totalVisitors?: number;
     timeSeriesPageviews?: Awaited<ReturnType <typeof analytics.retrieveDays>>
+    trackingDays: number
 }) => {
     return (
         <div className="flex flex-col gap-6">
@@ -58,12 +60,5 @@ const AnalyticsDashboard = ({
         </div>
     );
 };
-
-/**
-     * pageViews = [
-     *  {date: "25/06/2024", events: []},
-     *  {date: "29/06/2024", events: [{"{\"page\":\"/\"}":1}, {"{\"page\":\about"/\"}":2}]},]
-     * ]
-     */
 
 export default AnalyticsDashboard
