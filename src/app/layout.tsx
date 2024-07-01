@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./global.css";
-import Link from 'next/link';
+import { FaGithub, FaTwitter, FaLinkedin } from "react-icons/fa";
 import ThemeProvider from "@/components/ThemeProvider";
 import Header from "@/components/Header";
 
@@ -24,11 +24,18 @@ export default function RootLayout({
               {children}
             </div>
 
-            <div id="footer" className="bg-blue-500 text-white p-2 dark:bg-slate-700">
-              <span>
-                &copy; {new Date().getFullYear()} Dashboard. All rights
-                reserved.
-              </span>
+            <div id="footer" className="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
+                <div className="mx-auto max-w-4xl py-4 px-8 text-center flex justify-center items-center gap-8 mb-4">
+                  <span>
+                    <FaGithub size={"2rem"}/>
+                  </span>
+                  <span>
+                    <FaTwitter size={"2rem"}/>
+                  </span>
+                  <span>
+                    <FaLinkedin size={"2rem"}/>
+                  </span>
+                </div>
             </div>
           </div>
         </ThemeProvider>
