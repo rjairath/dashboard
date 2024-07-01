@@ -37,8 +37,8 @@ const AnalyticsPage = async () => {
     )
 
     return (
-        <div className="min-h-screen w-full py-12 flex justify-center items-center">
-            <div className="relative w-full max-w-7xl mx-auto text-white">
+        <div className="w-full max-w-6xl mx-auto p-8 flex justify-center items-center">
+            <div className="relative w-full text-gray-700 dark:text-gray-200">
                 <AnalyticsDashboard
                     avgVisitorsPerDay={averagePageViews}
                     totalVisitors={amtVisitorsToday}

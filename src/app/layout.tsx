@@ -20,20 +20,20 @@ export default function RootLayout({
         <ThemeProvider>
           <div className="min-h-screen flex flex-col">
             <Header />
-            <div id="content" className="flex-1 scroll-auto p-2">
+            <div id="content" className="flex flex-1 scroll-auto">
               {children}
             </div>
 
             <div id="footer" className="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
                 <div className="mx-auto max-w-4xl py-4 px-8 text-center flex justify-center items-center gap-8 mb-4">
                   <span>
-                    <FaGithub size={"2rem"}/>
+                    <FaGithub size={"1.5rem"} className="cursor-pointer"/>
                   </span>
                   <span>
-                    <FaTwitter size={"2rem"}/>
+                    <FaTwitter size={"1.5rem"} className="cursor-pointer"/>
                   </span>
                   <span>
-                    <FaLinkedin size={"2rem"}/>
+                    <FaLinkedin size={"1.5rem"} className="cursor-pointer"/>
                   </span>
                 </div>
             </div>

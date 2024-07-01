@@ -86,8 +86,8 @@ const Header = () => {
             className="sticky-nav w-full bg-white dark:bg-zinc-900 bg-opacity-60"
         >
             <div className="flex justify-between items-center max-w-6xl p-8 mx-auto">
-                <div onClick={toggleTheme} className="cursor-pointer dark:text-white">
-                    {theme === 'light' ? <Moon size={"2rem"}/> : <Sun size={"2rem"}/>}
+                <div onClick={toggleTheme} className="cursor-pointer dark:text-white p-2 rounded-3xl shadow-lg shadow-zinc-800/5 dark:shadow-white/5">
+                    {theme === 'light' ? <Moon/> : <Sun/>}
                 </div>
                 <div className="hidden sm:block rounded-full px-3 text-sm font-medium 
                     bg-white/90 text-zinc-800 shadow-lg shadow-zinc-800/5
