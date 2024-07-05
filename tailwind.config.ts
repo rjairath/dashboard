@@ -99,6 +99,20 @@ const config: Config = {
                 'tremor-title': ['1.125rem', { lineHeight: '1.75rem' }],
                 'tremor-metric': ['1.875rem', { lineHeight: '2.25rem' }],
             },
+            keyframes: {
+                slideIn: {
+                    '0%': { opacity: '0', transform: 'translateY(-100px)'},
+                    '100%': { opacity: '1', transform: 'translateY(0px)' }
+                },
+                slideOut: {
+                    '0%': { opacity: '1', transform: 'translateY(0px)' },
+                    '100%': { opacity: '0', transform: 'translateY(-100px)' },
+                }
+            },
+            animation: {
+                slideIn: 'slideIn 0.3s ease-out',
+                slideOut: 'slideOut 0.2s ease-in'
+            }
         },
     },
     safelist: [

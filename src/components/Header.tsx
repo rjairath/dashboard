@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Sun, Moon } from 'lucide-react';
 import { ThemeContext } from './ThemeProvider';
@@ -74,6 +74,94 @@ export const Desktop = ({ links, hoveredIndex, setHoveredIndex, router }: {
     );
   };
 
+export const Mobile = ({ links, router }: {
+  links: linkObj[],
+  router: any
+}) => {
+	const [open, setOpen] = useState(false);
+	const dropIn = {
+		hidden: {
+			y: '-4vh',
+			opacity: 0,
+		},
+		visible: {
+			y: '0',
+			opacity: 1,
+			transition: {
+				duration: 0.1,
+				type: 'spring',
+				damping: 25,
+				stiffness: 500,
+			},
+		},
+		exit: {
+			y: '-4vh',
+			opacity: 0,
+		},
+	};
+
+	const handleClick = (link: string) => {
+		setOpen(false);
+		router.push(link);
+	};
+
+	useEffect(() => {
+		console.log('open value', open);
+	}, [open]);
+
+	return (
+		<div className="w-full flex flex-row items-center space-x-2">
+			<button
+				onClick={() => handleClick(links[0].link)}
+				className="relative rounded-lg px-1 py-1 text-sm text-gray-700 dark:text-gray-200 transition-all delay-150 
+          hover:text-gray-900 dark:hover:text-gray-900"
+			>
+				{links[0]?.name}
+			</button>
+
+			<button
+				onClick={() => setOpen(!open)}
+				className="p-2 rounded-md bg-gray-200 dark:bg-gray-800"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="1.5"
+					stroke="currentColor"
+					className="w-6 h-6 text-black dark:text-white"
+				>
+					<path
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+					/>
+				</svg>
+			</button>
+				{open && (
+					<div
+						className={`absolute inset-x-0 mx-auto top-20 flex flex-col w-[90%]  p-4 rounded-lg shadow-xl z-[999] 
+              bg-white dark:bg-gray-800 divide-y dark:divide-gray-700
+              ${open ? 'animate-slideIn' : 'animate-slideOut'}
+            `}
+					>
+						{[...links].splice(1).map((el) => (
+							<button
+								key={el?.link}
+								onClick={() => handleClick(el.link)}
+								className="relative font-bold px-1 py-4 sm:px-4 sm:py-2 text-sm text-gray-700 dark:text-gray-200 transition-all delay-150 hover:text-gray-900 dark:hover:text-gray-900 text-left"
+							>
+									<span className="relative z-10">
+										{el.name}
+									</span>
+							</button>
+						))}
+					</div>
+				)}
+		</div>
+	);
+};
+
 const Header = () => {
     const {theme, toggleTheme}: {theme: string, toggleTheme: () => void} = useContext(ThemeContext);
     const router = useRouter();
@@ -99,9 +187,9 @@ const Header = () => {
                         router={router}
                     />
                 </div>
-                {/* <div className="block sm:hidden" links={mobileLinks}>
-                    <Mobile links={mobileLinks} />
-                </div> */}
+                <div className="block sm:hidden">
+                    <Mobile links={mobileLinks} router={router} />
+                </div>
             </div>
         </div>
     );
