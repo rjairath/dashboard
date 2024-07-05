@@ -15,7 +15,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning={true}>
+      <head>
+        <script 
+          dangerouslySetInnerHTML={{
+            __html: `
+              if(window.localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark')
+                window.localStorage.setItem("theme", 'dark');
+              } else {
+                document.documentElement.classList.remove('dark')
+              }
+            `
+          }}
+        />
+      </head>
       <body>
         <ThemeProvider>
           <div className="min-h-screen flex flex-col">
