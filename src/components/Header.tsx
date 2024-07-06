@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { Sun, Moon } from 'lucide-react';
 import { ThemeContext } from './ThemeProvider';
 import { useRouter } from 'next/navigation';
-import { usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation';
+import { analytics } from '@/utils/analytics';
+import { namespace, clickEvents } from '@/constants';
 
 interface linkObj {
     name: string;
@@ -46,6 +48,17 @@ export const Desktop = ({ links, router }: {
     router: any
 }) => {
     const pathname = usePathname()
+
+    const handleLinkClick = (event: any, name: string) => {
+      if(name == 'Work') {
+        console.log("tracking work click");
+        analytics.track(namespace.clickEvent, clickEvents.workSection_click);
+      } else if(name == 'Analytics') {
+        console.log("tracking analytics click");
+        analytics.track(namespace.clickEvent, clickEvents.analyticsSection_click);
+      }
+    }
+
     return (
       <>
         {links.map((navLink, index) => (
@@ -59,6 +72,7 @@ export const Desktop = ({ links, router }: {
                     ? "text-teal-600"
                     : "text-gray-600 dark:text-gray-50"
                 }`}
+                onClick={e => handleLinkClick(e, navLink.name)}
               >
                 {navLink.name}
               </span>
@@ -83,9 +97,9 @@ export const Mobile = ({ links, router }: {
 		router.push(link);
 	};
 
-	useEffect(() => {
-		console.log('open value', open);
-	}, [open]);
+	// useEffect(() => {
+	// 	console.log('open value', open);
+	// }, [open]);
 
 	return (
 		<div className="w-full flex flex-row items-center space-x-2">
@@ -143,6 +157,12 @@ export const Mobile = ({ links, router }: {
 const Header = () => {
     const {theme, toggleTheme}: {theme: string, toggleTheme: () => void} = useContext(ThemeContext);
     const router = useRouter();
+
+    const handleThemeClick = () => {
+      toggleTheme();
+      console.log("tracking themeToggle click")
+      analytics.track(namespace.clickEvent, clickEvents.theme_click);
+    }
     
     return (
         <div
@@ -150,7 +170,7 @@ const Header = () => {
             className="sticky-nav w-full bg-white dark:bg-zinc-900 bg-opacity-60"
         >
             <div className="flex justify-between items-center max-w-6xl p-8 mx-auto">
-                <div onClick={toggleTheme} className="cursor-pointer dark:text-white p-2 rounded-3xl shadow-lg shadow-zinc-800/5 dark:shadow-white/5">
+                <div onClick={handleThemeClick} className="cursor-pointer dark:text-white p-2 rounded-3xl shadow-lg shadow-zinc-800/5 dark:shadow-white/5">
                     {theme ? (theme === 'light' ? <Moon/> : <Sun/>) : <span></span>}
                 </div>
                 <div className="hidden sm:block rounded-full px-3 text-sm font-medium 

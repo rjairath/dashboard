@@ -28,10 +28,28 @@ const AnalyticsDashboard = ({
 
                 <Card className="w-full mx-auto">
                     <p className="text-tremor-default text-dark-tremor-content">
-                        Total Visitors
+                        Total Visitors Today
                     </p>
                     <p className="text-3xl text-dark-tremor-content font-semibold">
                         {totalVisitors}
+                    </p>
+                </Card>
+
+                <Card className="w-full mx-auto">
+                    <p className="text-tremor-default text-dark-tremor-content">
+                        Avg. clicks/day
+                    </p>
+                    <p className="text-3xl text-dark-tremor-content font-semibold">
+                        {"-"}
+                    </p>
+                </Card>
+
+                <Card className="w-full mx-auto">
+                    <p className="text-tremor-default text-dark-tremor-content">
+                        Total Clicks Today
+                    </p>
+                    <p className="text-3xl text-dark-tremor-content font-semibold">
+                        {"-"}
                     </p>
                 </Card>
 

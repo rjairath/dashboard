@@ -13,7 +13,7 @@ class Analytics {
         if(args?.retention) this._retention = args.retention
     }
 
-    async track(namespace: string, event: object, opts?: { persist?: boolean}) {
+    async track(namespace: string, event: object | string, opts?: { persist?: boolean}) {
         let key = `analytics::${namespace}`;
         if(!opts?.persist) {
             key += `::${getDate(0)}`

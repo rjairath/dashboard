@@ -13,7 +13,6 @@ const ThemeProvider = ({children}: {children: React.ReactNode}) => {
     }, []);
 
     const toggleTheme = () => {
-        console.log("is toggle called?")
         const isFromDarkTheme = !document.documentElement.classList.toggle("dark");
         const newTheme = isFromDarkTheme ? 'light' : 'dark';
         window.localStorage.setItem("theme", newTheme);

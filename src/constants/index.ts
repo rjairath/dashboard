@@ -10,4 +10,15 @@ export const highlightList = [
         title: "Enabled dark mode for all pages",
         description: "Leveraging tailwind for toggling dark and light mode. Detects system preference on first load and picks up from localStorage on subsequent reloads \u2728"
     }
-]
+];
+
+export const namespace = {
+    pageView: "pageView",
+    clickEvent: "clickEvent"
+}
+
+export const clickEvents = {
+    theme_click: "theme_click",
+    workSection_click: "workSection_click",
+    analyticsSection_click: "analyticsSection_click"
+}
