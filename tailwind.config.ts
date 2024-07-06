@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import colors from 'tailwindcss/colors';
+import plugin from "tailwindcss/plugin";
 
 const config: Config = {
     content: [
@@ -144,7 +145,18 @@ const config: Config = {
                 /^(fill-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950))$/,
         },
     ],
-    plugins: [],
+    plugins: [
+        plugin(function ({addUtilities}) {
+            const newUtilities = {
+                ".custom-list": {
+                    'list-style': "disc",
+                    'padding-left': "1.25rem",
+                    'margin-top': "1rem"
+                }
+            }
+            addUtilities (newUtilities)
+        })
+    ],
     darkMode: 'selector',
 };
 export default config;
