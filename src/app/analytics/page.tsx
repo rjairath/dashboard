@@ -1,6 +1,7 @@
 import { analytics } from "@/utils/analytics";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import { getDate } from "@/utils";
+import { namespace } from '@/constants';
 
 interface PageViewObj {
     date: string;
@@ -12,13 +13,7 @@ interface PageViewObj {
 const AnalyticsPage = async () => {
     const TRACKING_DAYS = 5;
     const pageViews = await analytics.retrieveDays("pageView", TRACKING_DAYS);
-
-    /**
-     * pageViews = [
-     *  {date: "25/06/2024", event: []},
-     *  {date: "29/06/2024", event: [{"{\"page\":\"/\"}":1}, {"{\"page\":\about"/\"}":2}]},
-     * ]
-     */
+    const clickEvents = await analytics.retrieveDays( namespace.clickEvent, TRACKING_DAYS);
 
     let totalPageViews = 0;
 
@@ -51,6 +46,7 @@ const AnalyticsPage = async () => {
 						totalVisitors={amtVisitorsToday}
 						timeSeriesPageviews={pageViews}
 						trackingDays={TRACKING_DAYS}
+                        timeSeriesClickEvents={clickEvents}
 					/>
 				</div>
 			</div>

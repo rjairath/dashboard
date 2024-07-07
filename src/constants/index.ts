@@ -22,3 +22,18 @@ export const clickEvents = {
     workSection_click: "workSection_click",
     analyticsSection_click: "analyticsSection_click"
 }
+
+export const clickEventList = [
+    {
+        name: 'Theme Click',
+        key: 'theme_click'
+    },
+    {
+        name: 'WorkSection Click',
+        key: 'workSection_click'
+    },
+    {
+        name: 'Analytics Click',
+        key: 'analyticsSection_click'
+    }
+]
