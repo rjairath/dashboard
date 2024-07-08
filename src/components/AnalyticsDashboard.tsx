@@ -80,8 +80,8 @@ const AnalyticsDashboard = ({
 
     return (
 		<div className="flex flex-col gap-6">
-			<div className="grid w-full mx-auto grid-cols-1 sm:grid-cols-2 gap-6">
-				<Card className="w-full mx-auto">
+			<div className="grid-mobile sm:grid-desktop w-full mx-auto grid-cols-1 sm:grid-cols-2 gap-6">
+				<Card className="w-full mx-auto" style={{gridArea: "avgVisitor"}}>
 					<p className="text-tremor-default text-dark-tremor-content">
 						Avg. Visitors/day
 					</p>
@@ -90,7 +90,7 @@ const AnalyticsDashboard = ({
 					</p>
 				</Card>
 
-				<div className="w-full flex flex-col justify-between relative select-none">
+				<div className="w-full flex flex-col justify-between relative select-none" style={{gridArea: "selectClick"}}>
 					<p className="text-xl font-bold mb-2">Select Click Event</p>
 					<Card
 						className="p-4 cursor-pointer"
@@ -127,7 +127,7 @@ const AnalyticsDashboard = ({
 					)}
 				</div>
 
-				<Card className="w-full mx-auto">
+				<Card className="w-full mx-auto" style={{gridArea: "totalVisitor"}}>
 					<p className="text-tremor-default text-dark-tremor-content">
 						Total Visitors Today
 					</p>
@@ -136,7 +136,7 @@ const AnalyticsDashboard = ({
 					</p>
 				</Card>
 
-				<div className="w-full flex justify-between gap-4">
+				<div className="w-full flex justify-between gap-4" style={{gridArea: "clickMeta"}}>
 					<Card className="w-1/2 mx-auto">
 						<p className="text-tremor-default text-dark-tremor-content">
                             Avg. clicks/day
@@ -156,7 +156,7 @@ const AnalyticsDashboard = ({
 					</Card>
 				</div>
 
-				<Card>
+				<Card style={{gridArea: "chartVisitor"}}>
 					{timeSeriesPageviews ? (
 						<BarChart
 							showAnimation
@@ -174,7 +174,7 @@ const AnalyticsDashboard = ({
 					) : null}
 				</Card>
 
-                <Card>
+                <Card style={{gridArea: "chartClick"}}>
 					{timeSeriesClickEventsPerKey ? (
 						<BarChart
 							showAnimation

@@ -148,12 +148,31 @@ const config: Config = {
     plugins: [
         plugin(function ({addUtilities}) {
             const newUtilities = {
-                ".custom-list": {
-                    'list-style': "disc",
-                    'padding-left': "1.25rem",
-                    'margin-top': "1rem"
-                }
-            }
+				'.custom-list': {
+					'list-style': 'disc',
+					'padding-left': '1.25rem',
+					'margin-top': '1rem',
+				},
+                '.grid-mobile': {
+					display: 'grid',
+					gridTemplateAreas: `
+                        "avgVisitor"
+                        "totalVisitor"
+                        "chartVisitor"
+                        "selectClick"
+                        "clickMeta"
+                        "chartClick"
+                    `,
+				},
+				'.grid-desktop': {
+					display: 'grid',
+					gridTemplateAreas: `
+                        "avgVisitor selectClick"
+                        "totalVisitor clickMeta"
+                        "chartVisitor chartClick"
+                    `,
+				},
+			};
             addUtilities (newUtilities)
         })
     ],
