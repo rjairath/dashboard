@@ -13,6 +13,7 @@ class Analytics {
         if(args?.retention) this._retention = args.retention
     }
 
+    // Increment the hash map key counts -> key here is sth like "{page: '/'}"
     async track(namespace: string, event: object | string, opts?: { persist?: boolean}) {
         let key = `analytics::${namespace}`;
         if(!opts?.persist) {

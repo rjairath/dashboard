@@ -17,7 +17,7 @@ export default function Home() {
                           Experienced software engineer crafting seamless web
                           experiences. Currently working with frontend team at
                           Glance Gaming, bringing joyful gaming experiences to
-                          200Mn+ users
+                          20Mn+ users
                       </p>
                   </div>
               </div>
