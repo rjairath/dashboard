@@ -18,7 +18,7 @@ const WorkPage = () => {
 					My Work
 				</h3>
 				<div className="md:w-3/4 text-zinc-600 dark:text-zinc-500 mb-4">
-					<p>Here's a summary of my work so far.</p>
+					<p>Here is a summary of my work so far.</p>
 				</div>
 
 				<h4 className="font-medium text-xl tracking-tighter">
@@ -47,7 +47,7 @@ const WorkPage = () => {
 					Software Engineer
 				</p>
                 <ul className='custom-list text-base text-zinc-600 dark:text-zinc-500'>
-					<li>Developed Vault, the accounting platform for Pharmeasy's finance team, as the sole frontend developer</li>
+					<li>Developed Vault, the accounting platform for Pharmeasy&#39;s finance team, as the sole frontend developer</li>
 					<li>Made an auto payments dashboard facilitating bulk payment and status monitoring</li>
 				</ul>
 				<SkillTag skillArray={["Angular", "Typescript", "Java", "SQL"]}/>

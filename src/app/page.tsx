@@ -27,11 +27,12 @@ export default function Home() {
                 </h3>
                 <div id="hlList" className="flex flex-col gap-4">
                   {
-                    highlightList?.map((item) => (
+                    highlightList?.map((item, index) => (
                       <HighlightCard 
                         date={item.date}
                         title={item.title}
                         description={item.description}
+                        key={index}
                       />
                     ))
                   }
