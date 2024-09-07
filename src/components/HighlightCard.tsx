@@ -1,7 +1,7 @@
-import { formatTimestampToDate } from "@/utils";
+import { formatISODate } from "@/utils";
 
 interface HighlightCardProps {
-    date: number;
+    date: string;
     title: string;
     description: string;
     href?: string;
@@ -18,7 +18,7 @@ const HighlightCard: React.FC<HighlightCardProps> = ({
         dark:bg-zinc-800 dark:border-zinc-700 border rounded-md p-4">
           <div className="flex justify-between mb-2">
             <p className="text-xl md:text-2xl font-bold">{title}</p>
-            <span className="text-zinc-600 dark:text-zinc-500">{formatTimestampToDate(date)}</span>
+            <span className="text-zinc-600 dark:text-zinc-500">{formatISODate(date)}</span>
           </div>
           <div>
             <p>{description}</p>

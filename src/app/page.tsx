@@ -1,5 +1,7 @@
 import HighlightCard from "@/components/HighlightCard";
-import { highlightList } from '@/constants';
+import HighlightList from "@/components/HighlightList";
+import { Suspense } from "react";
+// import { highlightList } from '@/constants';
 
 export default function Home() {
   return (
@@ -25,18 +27,9 @@ export default function Home() {
                 <h3 className="font-bold text-2xl md:text-4xl tracking-tight mb-4 text-black dark:text-white">
                     Highlights
                 </h3>
-                <div id="hlList" className="flex flex-col gap-4">
-                  {
-                    highlightList?.map((item, index) => (
-                      <HighlightCard 
-                        date={item.date}
-                        title={item.title}
-                        description={item.description}
-                        key={index}
-                      />
-                    ))
-                  }
-                </div>
+                <Suspense fallback={<p>Loading Highlights...</p>}>
+                  <HighlightList />
+                </Suspense>
               </div>
           </div>
       </div>

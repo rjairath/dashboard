@@ -1,4 +1,4 @@
-import { format, subDays } from 'date-fns'
+import { format, subDays, parseISO } from 'date-fns'
 
 // Return the date after subtracting the sub days
 export const getDate = (sub: number = 0) => {
@@ -11,5 +11,10 @@ export const formatTimestampToDate = (timestamp: number) => {
     const date = new Date(timestamp);
     // Format the date to dd/MM/yyyy
     const formattedDate = format(date, 'dd/MM/yyyy');
+    return formattedDate;
+}
+
+export const formatISODate = (date: string) => {
+    const formattedDate = format(parseISO(date), 'dd/MM/yyyy');
     return formattedDate;
 }
