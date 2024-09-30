@@ -1,6 +1,7 @@
 import { getDate } from '@/utils';
 import { redis } from '../lib/redis';
 import { parse } from 'date-fns';
+import { getAnalytics } from '@/lib/api';
 
 interface AnalyticsArgs {
     retention?: number;
@@ -14,19 +15,20 @@ class Analytics {
     }
 
     // Increment the hash map key counts -> key here is sth like "{page: '/'}"
-    async track(namespace: string, event: object | string, opts?: { persist?: boolean}) {
-        let key = `analytics::${namespace}`;
-        if(!opts?.persist) {
-            key += `::${getDate(0)}`
-        }
-        // key here is the hashname
-        await redis.hincrby(key, JSON.stringify(event), 1);
-        if(!opts?.persist) {
-            await redis.expire(key, this._retention);
-        }
-    }
+    // async track(namespace: string, event: object | string, opts?: { persist?: boolean}) {
+    //     let key = `analytics::${namespace}`;
+    //     if(!opts?.persist) {
+    //         key += `::${getDate(0)}`
+    //     }
+    //     // key here is the hashname
+    //     await redis.hincrby(key, JSON.stringify(event), 1);
+    //     if(!opts?.persist) {
+    //         await redis.expire(key, this._retention);
+    //     }
+    // }
 
-    async retrieveDays(namespace: string, nDays: number) {
+    // Modify this for managed redis server
+    async retrieveDays(originUrl: string, namespace: string, nDays: number) {
         type AnalyticsPromise = ReturnType<typeof analytics.retrieve>;
         const promises: AnalyticsPromise[] = [];
 
@@ -50,16 +52,21 @@ class Analytics {
         return fetchedRes;
     }
 
-    async retrieve(namespace: string, date: string) {
-        let key = `analytics::${namespace}::${date}`;
-        const res = await redis.hgetall(key);
+    async retrieve(type: string, date: string) {
+        // let key = `analytics::${namespace}::${date}`;
+        // const res = await redis.hgetall(key);
 
-        return {
-            date,
-            events: Object.entries(res ?? []).map(([key, value]) => ({
-                [key]: Number(value),
-            })),
-        }
+        // return {
+        //     date,
+        //     events: Object.entries(res ?? []).map(([key, value]) => ({
+        //         [key]: Number(value),
+        //     })),
+        // }
+        
+        // Just call /api/analytics/?type={type}&date={date}
+        // console.log the data
+
+        const result = await getAnalytics()
     }
 }
 

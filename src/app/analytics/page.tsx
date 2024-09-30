@@ -12,8 +12,9 @@ interface PageViewObj {
 
 const AnalyticsPage = async () => {
     const TRACKING_DAYS = 5;
-    const pageViews = await analytics.retrieveDays("pageView", TRACKING_DAYS);
-    const clickEvents = await analytics.retrieveDays( namespace.clickEvent, TRACKING_DAYS);
+    const originUrl = window.location.origin;
+    const pageViews = await analytics.retrieveDays(originUrl, "pageView", TRACKING_DAYS);
+    const clickEvents = await analytics.retrieveDays( originUrl, namespace.clickEvent, TRACKING_DAYS);
 
     let totalPageViews = 0;
 

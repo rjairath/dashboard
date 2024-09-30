@@ -8,6 +8,8 @@ import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { analytics } from '@/utils/analytics';
 import { namespace, clickEvents } from '@/constants';
+import { postAnalytics } from '@/lib/api';
+import { getDate } from '@/utils';
 
 interface linkObj {
     name: string;
@@ -50,12 +52,18 @@ export const Desktop = ({ links, router }: {
     const pathname = usePathname()
 
     const handleLinkClick = (event: any, name: string) => {
+      const baseUrl = window.location.origin;
+      const date = getDate(0);
+      const payload = {
+        clickEvent: ""
+      };
+
       if(name == 'Work') {
-        console.log("tracking work click");
-        analytics.track(namespace.clickEvent, clickEvents.workSection_click);
+        payload.clickEvent = clickEvents.workSection_click;
+        postAnalytics(baseUrl, date, namespace.clickEvent, JSON.stringify(payload));
       } else if(name == 'Analytics') {
-        console.log("tracking analytics click");
-        analytics.track(namespace.clickEvent, clickEvents.analyticsSection_click);
+        payload.clickEvent = clickEvents.analyticsSection_click;
+        postAnalytics(baseUrl, date, namespace.clickEvent, JSON.stringify(payload));
       }
     }
 
@@ -96,10 +104,6 @@ export const Mobile = ({ links, router }: {
 		setOpen(false);
 		router.push(link);
 	};
-
-	// useEffect(() => {
-	// 	console.log('open value', open);
-	// }, [open]);
 
 	return (
 		<div className="w-full flex flex-row items-center space-x-2">
@@ -158,11 +162,27 @@ const Header = () => {
     const {theme, toggleTheme}: {theme: string, toggleTheme: () => void} = useContext(ThemeContext);
     const router = useRouter();
 
+    useEffect(() => {
+      // Record page visits
+      const baseUrl = window.location.origin;
+      const date = getDate(0);
+      const payload = JSON.stringify({
+        pageUrl: "/"
+      });
+      postAnalytics(baseUrl, date, namespace.pageView, payload);
+    }, []);
+
     const handleThemeClick = () => {
       toggleTheme();
-      console.log("tracking themeToggle click")
-      analytics.track(namespace.clickEvent, clickEvents.theme_click);
+      const baseUrl = window.location.origin;
+      const date = getDate(0);
+      const payload = {
+        clickEvent: clickEvents.theme_click
+      };
+
+      postAnalytics(baseUrl, date, namespace.clickEvent, JSON.stringify(payload));
     }
+
     
     return (
         <div
