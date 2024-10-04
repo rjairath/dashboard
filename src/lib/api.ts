@@ -39,8 +39,14 @@ export const getAnalytics = async (originUrl: string, date: string, type: string
             const errorResponse = await response.json();
             throw new Error(errorResponse.message || "Error");
         }
-
-        return response.json();
+        const result = await response.json();
+        const resultObj = result?.value;
+        return {
+            date,
+            events: Object.entries(resultObj).map(([key, value]) => ({
+                [key]: Number(value),
+            })),
+        }
 
     } catch (error) {
         console.log(error);

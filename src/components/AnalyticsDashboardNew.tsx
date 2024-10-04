@@ -1,33 +1,58 @@
-"use client"
+"use client";
 
-import { analytics } from '@/utils/analytics';
 import { BarChart, Card } from '@tremor/react';
 import { useState, useEffect } from 'react';
-import { clickEventList, clickEvents } from '@/constants';
+import { clickEventList, clickEvents, namespace } from '@/constants';
 import { getDate } from '@/utils';
+import { retrieveDays } from '@/utils/analytics';
 
 interface ClickEvents {
     [x: string]: number;
 }
 
-const AnalyticsDashboard = ({
-    avgVisitorsPerDay = '0.0',
-    totalVisitors = 0,
-    timeSeriesPageviews,
-    timeSeriesClickEvents,
-    trackingDays
-}: {
-    avgVisitorsPerDay?: string;
-    totalVisitors?: number;
-    timeSeriesPageviews?: Awaited<ReturnType <typeof analytics.retrieveDays>>
-    timeSeriesClickEvents?: Awaited<ReturnType <typeof analytics.retrieveDays>>
-    trackingDays: number
-}) => {
+export default function AnalyticsDashboardNew({trackingDays}: {trackingDays: number}) {
+    const [timeSeriesPageviews, setTimeSeriesPageviews] = useState<Awaited<ReturnType <typeof retrieveDays>>>();
+    const [timeSeriesClickEvents, setTimeSeriesClickEvents] = useState<Awaited<ReturnType <typeof retrieveDays>>>();
+    const [avgVisitorsPerDay, setAvgVisitorsPerDay] = useState('0.0');
+    const [totalVisitors, setTotalVisitors] = useState(0);
+
     const [dropdownOpen, setdropdownOpen] = useState(false);
-    const [selectedClickEvent, setSelectedClickEvent] = useState(clickEventList[0]);
+    const [selectedClickEvent, setSelectedClickEvent] = useState<{name?: string, key?: string}>({});
     const [totalEventClicks, setTotalEventClicks] = useState(0);
     const [eventClicksToday, setEventClicksToday] = useState(0);
-    const [timeSeriesClickEventsPerKey, setTimeSeriesClickEventsPerKey] = useState<Awaited<ReturnType <typeof analytics.retrieveDays>>>([]);
+    const [timeSeriesClickEventsPerKey, setTimeSeriesClickEventsPerKey] = useState<Awaited<ReturnType <typeof retrieveDays>>>([]);
+
+    const fetchData = async () => {
+        const origin = window.location.origin;
+        const pageViews = await retrieveDays(origin, namespace.pageView, trackingDays);
+        const clickEvents = await retrieveDays(origin, namespace.clickEvent, trackingDays);
+        const amtVisitorsToday = pageViews
+			.filter((item) => item.date === getDate())
+			.reduce((acc, curr) => {
+				return (
+					acc +
+					curr.events.reduce(
+						(acc, curr) => acc + Object.values(curr)[0]!,
+						0,
+					)
+				);
+			}, 0);
+
+        let totalPageViews = 0;
+
+        pageViews.forEach((item) => {
+            item.events?.forEach((eventEntry) => {
+                totalPageViews += Object.values(eventEntry)[0]!
+            })
+        });
+        const averagePageViews = (totalPageViews/trackingDays).toFixed(1);
+
+        setTimeSeriesPageviews(pageViews);
+        setTimeSeriesClickEvents(clickEvents);
+        setTotalVisitors(amtVisitorsToday);
+        setAvgVisitorsPerDay(averagePageViews);
+		setSelectedClickEvent(clickEventList[0]);
+    }
 
     const handleEventSelection = (el: {key: string, name: string}) => {
         setdropdownOpen(!dropdownOpen);
@@ -42,18 +67,20 @@ const AnalyticsDashboard = ({
     }
 
     useEffect(() => {
+		if(!timeSeriesClickEvents) {
+			return;
+		}
         const totalClicks = timeSeriesClickEvents?.reduce((acc, curr) => {
-            let objWithKey = findObj(curr.events);
-            let currValue = 0
-            if(objWithKey){ 
-                currValue = objWithKey[JSON.stringify(selectedClickEvent?.key)]
-            }
-            return (
-               acc + currValue
-            )
-        }, 0);
+			let objWithKey = findObj(curr.events);
+			let currValue = 0;
+			if (objWithKey) {
+				currValue = objWithKey[JSON.stringify(selectedClickEvent?.key)];
+			}
+			return acc + currValue;
+		}, 0);
 
         const eventObjToday = timeSeriesClickEvents?.filter(item => item.date === getDate())[0];
+        
         let objWithKey;
         let totalClicksToday = 0;
 
@@ -67,16 +94,19 @@ const AnalyticsDashboard = ({
         const filteredData = timeSeriesClickEvents?.map(item => {
             return {
                 date: item.date,
-                events: item.events.filter((eventObj) => eventObj.hasOwnProperty(JSON.stringify(selectedClickEvent?.key)))
+                events: item.events.filter((eventObj: ClickEvents) => eventObj.hasOwnProperty(JSON.stringify(selectedClickEvent?.key)))
             }
         })
-        console.log(filteredData, "filter");
 
         setTotalEventClicks(totalClicks ?? 0);
         setEventClicksToday(totalClicksToday);
+        // console.log("check", filteredData, timeSeriesClickEvents)
         setTimeSeriesClickEventsPerKey(filteredData ?? []);
     }, [selectedClickEvent?.key]);
 
+    useEffect(() => {
+        fetchData();
+    }, []);
 
     return (
 		<div className="flex flex-col gap-6">
@@ -194,6 +224,4 @@ const AnalyticsDashboard = ({
 			</div>
 		</div>
 	);
-};
-
-export default AnalyticsDashboard
+}
