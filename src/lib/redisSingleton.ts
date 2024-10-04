@@ -1,13 +1,17 @@
 import { createClient, RedisClientType } from "redis";
 
 class RedisSingleton {
-    static instance: RedisSingleton;
+    private static instance: RedisSingleton | null = null;
     private redisClient: RedisClientType | null = null;
 
-    constructor() {
-        // console.log(process.env.REDIS_URL_LOCAL, "checking")
+    private constructor() {
+        console.log("Constructor called??")
         this.redisClient = createClient({
-            url: process.env.REDIS_URL_LOCAL
+            socket: {
+                host: process.env.REDIS_HOST,
+                port: parseInt(process.env.REDIS_PORT || "6379")
+            },
+            password: process.env.REDIS_PASSWORD
         });
         this.redisClient
             .connect()

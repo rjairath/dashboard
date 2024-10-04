@@ -1,5 +1,4 @@
 import { getDate } from '@/utils';
-import { redis } from '../lib/redis';
 import { parse } from 'date-fns';
 import { getAnalytics } from '@/lib/api';
 
