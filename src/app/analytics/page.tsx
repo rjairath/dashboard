@@ -1,35 +1,7 @@
-import { analytics } from "@/utils/analytics";
-import AnalyticsDashboard from "@/components/AnalyticsDashboard";
-import { getDate } from "@/utils";
-import { namespace } from '@/constants';
+import AnalyticsDashboardNew from "@/components/AnalyticsDashboardNew";
 
-interface PageViewObj {
-    date: string;
-    events: {
-        [x: string]: number;
-    }[]
-}
-
-const AnalyticsPage = async () => {
+const AnalyticsPage = () => {
     const TRACKING_DAYS = 5;
-    const pageViews = await analytics.retrieveDays("pageView", TRACKING_DAYS);
-    const clickEvents = await analytics.retrieveDays( namespace.clickEvent, TRACKING_DAYS);
-
-    let totalPageViews = 0;
-
-    pageViews.forEach((item: PageViewObj) => {
-        item.events?.forEach((eventEntry) => {
-            totalPageViews += Object.values(eventEntry)[0]!
-        })
-    });
-    const averagePageViews = (totalPageViews/TRACKING_DAYS).toFixed(1);
-    const amtVisitorsToday = pageViews.filter(item => item.date === getDate()).reduce(
-        (acc, curr) => {
-            return (
-                acc + curr.events.reduce((acc, curr) => (acc + Object.values(curr)[0]!), 0)
-            )
-        }, 0
-    )
 
     return (
 		<div
@@ -41,13 +13,9 @@ const AnalyticsPage = async () => {
 					Analytics Dashboard
 				</h3>
 				<div className="relative w-full text-gray-700 dark:text-gray-200">
-					<AnalyticsDashboard
-						avgVisitorsPerDay={averagePageViews}
-						totalVisitors={amtVisitorsToday}
-						timeSeriesPageviews={pageViews}
-						trackingDays={TRACKING_DAYS}
-                        timeSeriesClickEvents={clickEvents}
-					/>
+                    <AnalyticsDashboardNew 
+                        trackingDays={TRACKING_DAYS}
+                    />
 				</div>
 			</div>
 		</div>
