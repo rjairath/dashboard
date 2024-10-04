@@ -1,5 +1,6 @@
 import HighlightCard from "@/components/HighlightCard";
 import HighlightList from "@/components/HighlightList";
+import Shimmer from "@/components/Shimmer";
 import { Suspense } from "react";
 // import { highlightList } from '@/constants';
 
@@ -27,7 +28,7 @@ export default function Home() {
                 <h3 className="font-bold text-2xl md:text-4xl tracking-tight mb-4 text-black dark:text-white">
                     Highlights
                 </h3>
-                <Suspense fallback={<p>Loading Highlights...</p>}>
+                <Suspense fallback={<Shimmer />}>
                   <HighlightList />
                 </Suspense>
               </div>

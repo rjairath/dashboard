@@ -3,6 +3,7 @@ import "./global.css";
 import { FaGithub, FaTwitter, FaLinkedin } from "react-icons/fa";
 import ThemeProvider from "@/components/ThemeProvider";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Next Dashboard",
@@ -34,23 +35,12 @@ export default function RootLayout({
         <ThemeProvider>
           <div className="min-h-screen flex flex-col">
             <Header />
+
             <div id="content" className="flex flex-1 scroll-auto">
               {children}
             </div>
-
-            <div id="footer" className="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
-                <div className="mx-auto max-w-4xl py-4 px-8 text-center flex justify-center items-center gap-8 mb-4">
-                  <span>
-                    <FaGithub size={"1.5rem"} className="cursor-pointer"/>
-                  </span>
-                  <span>
-                    <FaTwitter size={"1.5rem"} className="cursor-pointer"/>
-                  </span>
-                  <span>
-                    <FaLinkedin size={"1.5rem"} className="cursor-pointer"/>
-                  </span>
-                </div>
-            </div>
+            
+            <Footer />
           </div>
         </ThemeProvider>
       </body>

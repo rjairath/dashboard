@@ -108,11 +108,15 @@ const config: Config = {
                 slideOut: {
                     '0%': { opacity: '1', transform: 'translateY(0px)' },
                     '100%': { opacity: '0', transform: 'translateY(-100px)' },
+                },
+                shimmer: {
+                    '100%': { transform: 'translateX(100%)' },
                 }
             },
             animation: {
                 slideIn: 'slideIn 0.3s ease-out',
-                slideOut: 'slideOut 0.2s ease-in'
+                slideOut: 'slideOut 0.2s ease-in',
+                shimmer: 'shimmer 1.5s infinite',
             }
         },
     },

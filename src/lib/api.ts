@@ -2,7 +2,9 @@ import { HighlightApiResponse } from "@/types/Highlight";
 
 const baseUrl = process.env.NEXT_PUBLIC_SERVER_IP;
 export const getHighlights = async () => {
-    const response = await fetch(`${baseUrl}/api/highlights/?sort=createdAt:desc`);
+    const response = await fetch(`${baseUrl}/api/highlights/?sort=createdAt:desc`,
+        { next: { revalidate: 30 } }
+    );
 
     if(!response.ok) {
         throw new Error('Error in Highlight API');

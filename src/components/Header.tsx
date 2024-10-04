@@ -6,7 +6,6 @@ import { Sun, Moon } from 'lucide-react';
 import { ThemeContext } from './ThemeProvider';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
-import { analytics } from '@/utils/analytics';
 import { namespace, clickEvents } from '@/constants';
 import { postAnalytics } from '@/lib/api';
 import { getDate } from '@/utils';

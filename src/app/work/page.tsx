@@ -33,7 +33,10 @@ const WorkPage = () => {
 					</li>
 					<li> Was promoted to SDE-III in September 2023. Around this time we started Implementing challenges on game center to enhance user engagement
 					</li>
-					<li>Developed a standardized CDN URL schema for Nostra Games, optimizing the delivery and accessibility of game assets</li>
+					<li> Migrated the Game Center from a CSR app to an high performant web app. This reduced loading time and JS bundle sizes, resulting in an overall reduction in bounce
+						rates and a better user experience.
+					</li>
+					<li>Developed a standardized express server for Nostra Games, optimizing the delivery and accessibility of game assets</li>
 				</ul>
 				<SkillTag skillArray={["ReactJS", "Redux", "Typescript", "NextJS", "ExpressJS", "Webpack", "Tailwind"]}/>
 
