@@ -21,7 +21,7 @@ const HighlightList = async () => {
         );
     } catch (error: any) {
         return (
-            <div id="hlList" className="flex flex-col gap-4">
+            <div id="hlListError" className="flex flex-col gap-4">
                 <h1>Error fetching Highlights...</h1>
             </div>
         );
