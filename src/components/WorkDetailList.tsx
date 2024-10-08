@@ -8,9 +8,6 @@ const WorkDetailList = async () => {
         const workDetailsResponse: WorkDetailsAPIResponse = await getWorkDetails();
         const workDetails = workDetailsResponse.data;
 
-        console.log(workDetails, "check");
-        const {} = workDetails;
-
         return (
 			<div id="workDetailList" className="flex flex-col gap-2">
 				{workDetails?.map((item, index) => (

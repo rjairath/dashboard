@@ -1,3 +1,4 @@
+import { BlogDetailAPIResponse } from "@/types/BlogDetails";
 import { HighlightApiResponse } from "@/types/Highlight";
 import { WorkDetailsAPIResponse } from '@/types/WorkDetails';
 
@@ -25,6 +26,19 @@ export const getWorkDetails = async () => {
     }
 
     const result: WorkDetailsAPIResponse = await response.json();
+    return result;
+}
+
+export const getBlogs = async () => {
+    const response = await fetch(`${baseUrl}/api/blogs/?sort=datePublished:desc`,
+        { next: { revalidate: 30 } }
+    );
+
+    if(!response.ok) {
+        throw new Error('Error in Blog Details API');
+    }
+
+    const result: BlogDetailAPIResponse = await response.json();
     return result;
 }
 

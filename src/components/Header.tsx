@@ -21,6 +21,10 @@ const links: linkObj[] = [
         link: '/',
     },
     {
+      name: 'Blogs',
+      link: '/blogs',
+    },
+    {
         name: 'Work',
         link: '/work',
     },
@@ -33,6 +37,10 @@ const mobileLinks: linkObj[] = [
     {
         name: 'Home',
         link: '/',
+    },
+    {
+      name: 'Blogs',
+      link: '/blogs',
     },
     {
         name: 'Work',
