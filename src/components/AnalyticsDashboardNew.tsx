@@ -1,133 +1,196 @@
-"use client";
+'use client';
 
 import { BarChart, Card } from '@tremor/react';
 import { useState, useEffect } from 'react';
-import { clickEventList, clickEvents, namespace } from '@/constants';
-import { getDate } from '@/utils';
-import { retrieveDays } from '@/utils/analytics';
+import { clickEventList } from '@/constants';
+import { getDate, findEventByKey, getValueFromKey } from '@/utils';
+import { retrieveDaysBatch } from '@/utils/analytics';
+import { analyticsTypeEnum, type AnalyticsResponse } from '@/types/Analytics';
 
-interface ClickEvents {
-    [x: string]: number;
-}
+// Types for the analytics data state
+type AnalyticsData = {
+	pageViews?: AnalyticsResponse;
+	clickEvents?: AnalyticsResponse;
+	stats: {
+		avgVisitorsPerDay: string;
+		totalVisitors: number;
+	};
+};
 
-export default function AnalyticsDashboardNew({trackingDays}: {trackingDays: number}) {
-    const [timeSeriesPageviews, setTimeSeriesPageviews] = useState<Awaited<ReturnType <typeof retrieveDays>>>();
-    const [timeSeriesClickEvents, setTimeSeriesClickEvents] = useState<Awaited<ReturnType <typeof retrieveDays>>>();
-    const [avgVisitorsPerDay, setAvgVisitorsPerDay] = useState('0.0');
-    const [totalVisitors, setTotalVisitors] = useState(0);
+// Types for the click events state
+type ClickEventData = {
+	selectedEvent: {
+		name?: string;
+		key?: string;
+	};
+	filteredEvents: AnalyticsResponse;
+	stats: {
+		totalClicks: number;
+		clicksToday: number;
+	};
+};
 
-    const [dropdownOpen, setdropdownOpen] = useState(false);
-    const [selectedClickEvent, setSelectedClickEvent] = useState<{name?: string, key?: string}>({});
-    const [totalEventClicks, setTotalEventClicks] = useState(0);
-    const [eventClicksToday, setEventClicksToday] = useState(0);
-    const [timeSeriesClickEventsPerKey, setTimeSeriesClickEventsPerKey] = useState<Awaited<ReturnType <typeof retrieveDays>>>([]);
+export default function AnalyticsDashboardNew({
+	trackingDays,
+}: {
+	trackingDays: number;
+}) {
+	// Consolidated analytics data state
+	const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
+		stats: {
+			avgVisitorsPerDay: '0.0',
+			totalVisitors: 0,
+		},
+	});
 
-    const fetchData = async () => {
-        const origin = window.location.origin;
-        const pageViews = await retrieveDays(origin, namespace.pageView, trackingDays);
-        const clickEvents = await retrieveDays(origin, namespace.clickEvent, trackingDays);
-        const amtVisitorsToday = pageViews
-			.filter((item) => item.date === getDate())
-			.reduce((acc, curr) => {
-				return (
+	// Consolidated click event state
+	const [clickEventData, setClickEventData] = useState<ClickEventData>({
+		selectedEvent: {},
+		filteredEvents: [],
+		stats: {
+			totalClicks: 0,
+			clicksToday: 0,
+		},
+	});
+
+	// UI state
+	const [dropdownOpen, setDropdownOpen] = useState(false);
+
+	const fetchData = async () => {
+		const origin = window.location.origin;
+
+		// Fetch page views and click events in parallel
+		const [pageViews, clickEvents] = await Promise.all([
+			retrieveDaysBatch(origin, analyticsTypeEnum.pageView, trackingDays),
+			retrieveDaysBatch(
+				origin,
+				analyticsTypeEnum.clickEvent,
+				trackingDays,
+			),
+		]);
+
+		// Calculate statistics
+		const todayFormatted = getDate(0);
+
+		// Calculate visitors today
+		const visitorsToday = pageViews
+			?.filter((item) => item.date === todayFormatted)
+			?.reduce(
+				(acc, curr) =>
 					acc +
 					curr.events.reduce(
-						(acc, curr) => acc + Object.values(curr)[0]!,
+						(sum, event) => sum + Object.values(event)[0]!,
 						0,
-					)
-				);
-			}, 0);
+					),
+				0,
+			);
 
-        let totalPageViews = 0;
+		// Calculate total page views and average
+		let totalPageViews = 0;
+		pageViews?.forEach((item) => {
+			item.events?.forEach((eventEntry) => {
+				totalPageViews += Object.values(eventEntry)[0]!;
+			});
+		});
 
-        pageViews.forEach((item) => {
-            item.events?.forEach((eventEntry) => {
-                totalPageViews += Object.values(eventEntry)[0]!
-            })
-        });
-        const averagePageViews = (totalPageViews/trackingDays).toFixed(1);
+		const averagePageViews = (totalPageViews / trackingDays).toFixed(1);
 
-        setTimeSeriesPageviews(pageViews);
-        setTimeSeriesClickEvents(clickEvents);
-        setTotalVisitors(amtVisitorsToday);
-        setAvgVisitorsPerDay(averagePageViews);
-		setSelectedClickEvent(clickEventList[0]);
-    }
+		// Update analytics data state
+		setAnalyticsData({
+			pageViews,
+			clickEvents,
+			stats: {
+				avgVisitorsPerDay: averagePageViews,
+				totalVisitors: visitorsToday,
+			},
+		});
 
-    const handleEventSelection = (el: {key: string, name: string}) => {
-        setdropdownOpen(!dropdownOpen);
-        setSelectedClickEvent(el);
-    }
+		// Initialize with first click event
+		handleEventSelection(clickEventList[0]);
+	};
 
-    const findObj = (arr?: ClickEvents[]) => {
-        const obj = arr?.find(item => {
-          return item.hasOwnProperty(JSON.stringify(selectedClickEvent?.key))
-        });
-        return obj;
-    }
+	// Handle click event selection
+	const handleEventSelection = (selectedEvent: {
+		key: string;
+		name: string;
+	}) => {
+		if (!analyticsData.clickEvents) return;
 
-    useEffect(() => {
-		if(!timeSeriesClickEvents) {
-			return;
-		}
-        const totalClicks = timeSeriesClickEvents?.reduce((acc, curr) => {
-			let objWithKey = findObj(curr.events);
-			let currValue = 0;
-			if (objWithKey) {
-				currValue = objWithKey[JSON.stringify(selectedClickEvent?.key)];
-			}
-			return acc + currValue;
+		setDropdownOpen(false);
+
+		// Filter for the selected event
+		const filteredEvents = analyticsData.clickEvents.map((item) => ({
+			date: item.date,
+			events: item.events.filter((eventObj) =>
+				Object.keys(eventObj).some(
+					(jsonKey) => JSON.parse(jsonKey) === `${selectedEvent.key}`,
+				),
+			),
+		}));
+
+		// Calculate total clicks
+		const totalClicks = analyticsData.clickEvents.reduce((acc, curr) => {
+			const eventObj = findEventByKey(curr.events, selectedEvent.key);
+			return (
+				acc +
+				(eventObj ? getValueFromKey(eventObj, selectedEvent.key) : 0)
+			);
 		}, 0);
 
-        const eventObjToday = timeSeriesClickEvents?.filter(item => item.date === getDate())[0];
-        
-        let objWithKey;
-        let totalClicksToday = 0;
+		// Calculate today's clicks
+		const todayFormatted = getDate(0);
+		const todayData = analyticsData.clickEvents.find(
+			(item) => item.date === todayFormatted,
+		);
+		const clicksToday = todayData
+			? getValueFromKey(
+					findEventByKey(todayData.events, selectedEvent.key),
+					selectedEvent.key,
+			  )
+			: 0;
 
-        if(eventObjToday) {
-            objWithKey = findObj(eventObjToday?.events);
-            if(objWithKey) {
-                totalClicksToday = objWithKey[JSON.stringify(selectedClickEvent?.key)]
-            }
-        }
-        
-        const filteredData = timeSeriesClickEvents?.map(item => {
-            return {
-                date: item.date,
-                events: item.events.filter((eventObj: ClickEvents) => eventObj.hasOwnProperty(JSON.stringify(selectedClickEvent?.key)))
-            }
-        })
+		// Update click event state
+		setClickEventData({
+			selectedEvent,
+			filteredEvents,
+			stats: {
+				totalClicks,
+				clicksToday,
+			},
+		});
+	};
 
-        setTotalEventClicks(totalClicks ?? 0);
-        setEventClicksToday(totalClicksToday);
-        // console.log("check", filteredData, timeSeriesClickEvents)
-        setTimeSeriesClickEventsPerKey(filteredData ?? []);
-    }, [selectedClickEvent?.key]);
+	// Fetch data on component mount
+	useEffect(() => {
+		fetchData();
+	}, []);
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    return (
+	return (
 		<div className="flex flex-col gap-6">
 			<div className="grid-mobile sm:grid-desktop w-full mx-auto grid-cols-1 sm:grid-cols-2 gap-6">
-				<Card className="w-full mx-auto" style={{gridArea: "avgVisitor"}}>
+				<Card
+					className="w-full mx-auto"
+					style={{ gridArea: 'avgVisitor' }}
+				>
 					<p className="text-tremor-default text-dark-tremor-content">
 						Avg. Visitors/day
 					</p>
 					<p className="text-3xl text-dark-tremor-content font-semibold">
-						{avgVisitorsPerDay}
+						{analyticsData.stats.avgVisitorsPerDay}
 					</p>
 				</Card>
 
-				<div className="w-full flex flex-col justify-between relative select-none" style={{gridArea: "selectClick"}}>
+				<div
+					className="w-full flex flex-col justify-between relative select-none"
+					style={{ gridArea: 'selectClick' }}
+				>
 					<p className="text-xl font-bold mb-2">Select Click Event</p>
 					<Card
 						className="p-4 cursor-pointer"
-						onClick={() => setdropdownOpen(!dropdownOpen)}
+						onClick={() => setDropdownOpen(!dropdownOpen)}
 					>
 						<p className="text-xl font-semibold text-dark-tremor-content">
-							{selectedClickEvent?.name}
+							{clickEventData.selectedEvent?.name}
 						</p>
 					</Card>
 
@@ -137,7 +200,7 @@ export default function AnalyticsDashboardNew({trackingDays}: {trackingDays: num
                                 bg-white dark:bg-gray-800 divide-y dark:divide-gray-700 right-0
                             `}
 						>
-							{[...clickEventList].map((el) => (
+							{clickEventList.map((el) => (
 								<button
 									key={el?.key}
 									className="relative font-bold px-1 py-4 sm:px-4 sm:py-2 text-sm 
@@ -145,9 +208,7 @@ export default function AnalyticsDashboardNew({trackingDays}: {trackingDays: num
 								>
 									<span
 										className="relative z-10"
-										onClick={(e) =>
-											handleEventSelection(el)
-										}
+										onClick={() => handleEventSelection(el)}
 									>
 										{el.name}
 									</span>
@@ -157,45 +218,55 @@ export default function AnalyticsDashboardNew({trackingDays}: {trackingDays: num
 					)}
 				</div>
 
-				<Card className="w-full mx-auto" style={{gridArea: "totalVisitor"}}>
+				<Card
+					className="w-full mx-auto"
+					style={{ gridArea: 'totalVisitor' }}
+				>
 					<p className="text-tremor-default text-dark-tremor-content">
 						Total Visitors Today
 					</p>
 					<p className="text-3xl text-dark-tremor-content font-semibold">
-						{totalVisitors}
+						{analyticsData.stats.totalVisitors}
 					</p>
 				</Card>
 
-				<div className="w-full flex justify-between gap-4" style={{gridArea: "clickMeta"}}>
+				<div
+					className="w-full flex justify-between gap-4"
+					style={{ gridArea: 'clickMeta' }}
+				>
 					<Card className="w-1/2 mx-auto">
 						<p className="text-tremor-default text-dark-tremor-content">
-                            Avg. clicks/day
+							Avg. clicks/day
 						</p>
 						<p className="text-3xl text-dark-tremor-content font-semibold">
-							{(totalEventClicks/trackingDays).toFixed(1)}
+							{(
+								clickEventData.stats.totalClicks / trackingDays
+							).toFixed(1)}
 						</p>
 					</Card>
 
-                    <Card className="w-1/2 mx-auto">
+					<Card className="w-1/2 mx-auto">
 						<p className="text-tremor-default text-dark-tremor-content">
 							Total Clicks Today
 						</p>
 						<p className="text-3xl text-dark-tremor-content font-semibold">
-							{eventClicksToday}
+							{clickEventData.stats.clicksToday}
 						</p>
 					</Card>
 				</div>
 
-				<Card style={{gridArea: "chartVisitor"}}>
-					{timeSeriesPageviews ? (
+				<Card style={{ gridArea: 'chartVisitor' }}>
+					{analyticsData.pageViews ? (
 						<BarChart
 							showAnimation
 							categories={['visitors']}
-							data={timeSeriesPageviews.map((item) => ({
+							data={analyticsData.pageViews.map((item) => ({
 								name: item.date,
-								visitors: item.events.reduce((acc, curr) => {
-									return acc + Object.values(curr)[0]!;
-								}, 0),
+								visitors: item.events.reduce(
+									(acc, curr) =>
+										acc + Object.values(curr)[0]!,
+									0,
+								),
 							}))}
 							index="name"
 							colors={['blue']}
@@ -204,16 +275,18 @@ export default function AnalyticsDashboardNew({trackingDays}: {trackingDays: num
 					) : null}
 				</Card>
 
-                <Card style={{gridArea: "chartClick"}}>
-					{timeSeriesClickEventsPerKey ? (
+				<Card style={{ gridArea: 'chartClick' }}>
+					{clickEventData.filteredEvents.length > 0 ? (
 						<BarChart
 							showAnimation
 							categories={['clicks']}
-							data={timeSeriesClickEventsPerKey.map((item) => ({
+							data={clickEventData.filteredEvents.map((item) => ({
 								name: item.date,
-								clicks: item.events.reduce((acc, curr) => {
-									return acc + Object.values(curr)[0]!;
-								}, 0),
+								clicks: item.events.reduce(
+									(acc, curr) =>
+										acc + Object.values(curr)[0]!,
+									0,
+								),
 							}))}
 							index="name"
 							colors={['teal']}

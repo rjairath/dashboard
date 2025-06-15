@@ -1,9 +1,9 @@
-import AnalyticsDashboardNew from "@/components/AnalyticsDashboardNew";
+import AnalyticsDashboardNew from '@/components/AnalyticsDashboardNew';
 
 const AnalyticsPage = () => {
-    const TRACKING_DAYS = 5;
+	const TRACKING_DAYS = 5;
 
-    return (
+	return (
 		<div
 			id="container"
 			className="w-full bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-200"
@@ -13,13 +13,11 @@ const AnalyticsPage = () => {
 					Analytics Dashboard
 				</h3>
 				<div className="relative w-full text-gray-700 dark:text-gray-200">
-                    <AnalyticsDashboardNew 
-                        trackingDays={TRACKING_DAYS}
-                    />
+					<AnalyticsDashboardNew trackingDays={TRACKING_DAYS} />
 				</div>
 			</div>
 		</div>
 	);
-}
+};
 
-export default AnalyticsPage
+export default AnalyticsPage;
