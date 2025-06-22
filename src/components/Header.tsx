@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 import Link from 'next/link';
 import { Sun, Moon } from 'lucide-react';
 import { ThemeContext } from './ThemeProvider';
@@ -9,6 +9,7 @@ import { usePathname } from 'next/navigation';
 import { analyticsTypeEnum, clickEventsEnum } from '@/types/Analytics';
 import { postAnalytics } from '@/lib/api';
 import { getDate } from '@/utils';
+import { usePageTracking } from '@/lib/usePageTracking';
 
 interface linkObj {
 	name: string;
@@ -64,7 +65,7 @@ export const Desktop = ({
 	const handleLinkClick = (event: any, name: string) => {
 		const baseUrl = window.location.origin;
 		const date = getDate(0);
-		const payload = {
+		let payload: any = {
 			clickEvent: '',
 		};
 
@@ -181,16 +182,7 @@ const Header = () => {
 	const { theme, toggleTheme }: { theme: string; toggleTheme: () => void } =
 		useContext(ThemeContext);
 	const router = useRouter();
-
-	useEffect(() => {
-		// Record page visits
-		const baseUrl = window.location.origin;
-		const date = getDate(0);
-		const payload = JSON.stringify({
-			pageUrl: '/',
-		});
-		postAnalytics(baseUrl, date, analyticsTypeEnum.pageView, payload);
-	}, []);
+	usePageTracking();
 
 	const handleThemeClick = () => {
 		toggleTheme();
