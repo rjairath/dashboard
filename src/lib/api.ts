@@ -55,7 +55,6 @@ export const postAnalytics = async (
 	type: string,
 	body: string,
 ) => {
-	console.log('postAnalytics called with:', { originUrl, date, type, body });
 	try {
 		const response = await fetch(
 			`${originUrl}/api/analytics/?date=${date}&type=${type}`,
@@ -102,7 +101,7 @@ export const getAnalytics = async (
 			})),
 		};
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 		throw error;
 	}
 };

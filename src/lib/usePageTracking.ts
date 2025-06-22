@@ -36,5 +36,12 @@ export function usePageTracking(customPageName?: string) {
 			// Track the page view
 			postAnalytics(baseUrl, date, analyticsTypeEnum.pageView, payload);
 		}
-	}, [visitorId, sessionId, isNewVisitor, isNewSession, isNewPageView]);
+	}, [
+		visitorId,
+		sessionId,
+		isNewVisitor,
+		isNewSession,
+		isNewPageView,
+		pageUrl,
+	]);
 }
