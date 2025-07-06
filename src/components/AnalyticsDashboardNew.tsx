@@ -6,6 +6,7 @@ import { clickEventList } from '@/constants';
 import { getDate, findEventByKey, getValueFromKey } from '@/utils';
 import { retrieveDaysBatch } from '@/utils/analytics';
 import { analyticsTypeEnum, type AnalyticsResponse } from '@/types/Analytics';
+import PageViewsChart from './PageViewsChart';
 
 // Types for the analytics data state
 type AnalyticsData = {
@@ -68,6 +69,9 @@ export default function AnalyticsDashboardNew({
 				trackingDays,
 			),
 		]);
+
+		console.log('Page Views:', pageViews);
+		console.log('Click Events:', clickEvents);
 
 		// Calculate statistics
 		const todayFormatted = getDate(0);
@@ -256,6 +260,9 @@ export default function AnalyticsDashboardNew({
 				</div>
 
 				<Card style={{ gridArea: 'chartVisitor' }}>
+					<h3 className="text-lg font-mediummb-4">
+						Visitors by Date
+					</h3>
 					{analyticsData.pageViews ? (
 						<BarChart
 							showAnimation
@@ -295,6 +302,11 @@ export default function AnalyticsDashboardNew({
 					) : null}
 				</Card>
 			</div>
+
+			{/* Page Views Chart */}
+			{analyticsData.pageViews && (
+				<PageViewsChart data={analyticsData.pageViews} />
+			)}
 		</div>
 	);
 }
