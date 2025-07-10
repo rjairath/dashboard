@@ -24,8 +24,6 @@ const PageViewsChart = ({ data }: PageViewsChartProps) => {
 				: 1;
 		});
 
-		console.log('Sorted Data:', sortedData);
-
 		// Create a map of page views by date
 		const chartData = sortedData.map((day) => {
 			// Parse the date and format it for display
@@ -64,7 +62,6 @@ const PageViewsChart = ({ data }: PageViewsChartProps) => {
 			});
 		});
 
-		console.log('chartData', chartData);
 		return chartData;
 	};
 

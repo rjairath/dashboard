@@ -23,3 +23,26 @@ export type AnalyticsResponse = {
 export type BatchAnalyticsResponse = {
 	results: AnalyticsResponse;
 };
+
+// Types for the analytics data state
+export type AnalyticsData = {
+	pageViews?: AnalyticsResponse;
+	clickEvents?: AnalyticsResponse;
+	stats: {
+		avgVisitorsPerDay: string;
+		totalVisitors: number;
+	};
+};
+
+// Types for the click events state
+export type ClickEventData = {
+	selectedEvent: {
+		name: string;
+		key: string;
+	};
+	filteredEvents: AnalyticsResponse;
+	stats: {
+		totalClicks: number;
+		clicksToday: number;
+	};
+};

@@ -1,35 +1,17 @@
 'use client';
 
-import { BarChart, Card } from '@tremor/react';
+import { Card, Select, SelectItem } from '@tremor/react';
 import { useState, useEffect } from 'react';
 import { clickEventList } from '@/constants';
 import { getDate, findEventByKey, getValueFromKey } from '@/utils';
 import { retrieveDaysBatch } from '@/utils/analytics';
-import { analyticsTypeEnum, type AnalyticsResponse } from '@/types/Analytics';
-import PageViewsChart from './PageViewsChart';
-
-// Types for the analytics data state
-type AnalyticsData = {
-	pageViews?: AnalyticsResponse;
-	clickEvents?: AnalyticsResponse;
-	stats: {
-		avgVisitorsPerDay: string;
-		totalVisitors: number;
-	};
-};
-
-// Types for the click events state
-type ClickEventData = {
-	selectedEvent: {
-		name?: string;
-		key?: string;
-	};
-	filteredEvents: AnalyticsResponse;
-	stats: {
-		totalClicks: number;
-		clicksToday: number;
-	};
-};
+import {
+	analyticsTypeEnum,
+	type AnalyticsData,
+	type ClickEventData,
+} from '@/types/Analytics';
+import PageViewsChart from './AnalyticsCharts/PageViewsChart';
+import EventsBarChart from './AnalyticsCharts/EventsBarChart';
 
 export default function AnalyticsDashboardNew({
 	trackingDays,
@@ -46,16 +28,13 @@ export default function AnalyticsDashboardNew({
 
 	// Consolidated click event state
 	const [clickEventData, setClickEventData] = useState<ClickEventData>({
-		selectedEvent: {},
+		selectedEvent: clickEventList[0], // Initialize with the first click event
 		filteredEvents: [],
 		stats: {
 			totalClicks: 0,
 			clicksToday: 0,
 		},
 	});
-
-	// UI state
-	const [dropdownOpen, setDropdownOpen] = useState(false);
 
 	const fetchData = async () => {
 		const origin = window.location.origin;
@@ -69,9 +48,6 @@ export default function AnalyticsDashboardNew({
 				trackingDays,
 			),
 		]);
-
-		console.log('Page Views:', pageViews);
-		console.log('Click Events:', clickEvents);
 
 		// Calculate statistics
 		const todayFormatted = getDate(0);
@@ -108,9 +84,6 @@ export default function AnalyticsDashboardNew({
 				totalVisitors: visitorsToday,
 			},
 		});
-
-		// Initialize with first click event
-		handleEventSelection(clickEventList[0]);
 	};
 
 	// Handle click event selection
@@ -118,9 +91,14 @@ export default function AnalyticsDashboardNew({
 		key: string;
 		name: string;
 	}) => {
-		if (!analyticsData.clickEvents) return;
-
-		setDropdownOpen(false);
+		if (!analyticsData.clickEvents) {
+			// If no click events data yet, just update the selected event
+			setClickEventData((prevState) => ({
+				...prevState,
+				selectedEvent,
+			}));
+			return;
+		}
 
 		// Filter for the selected event
 		const filteredEvents = analyticsData.clickEvents.map((item) => ({
@@ -169,6 +147,13 @@ export default function AnalyticsDashboardNew({
 		fetchData();
 	}, []);
 
+	// Process click event data when analytics data changes
+	useEffect(() => {
+		if (analyticsData.clickEvents && clickEventData.selectedEvent) {
+			handleEventSelection(clickEventData.selectedEvent);
+		}
+	}, [analyticsData.clickEvents]);
+
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="grid-mobile sm:grid-desktop w-full mx-auto grid-cols-1 sm:grid-cols-2 gap-6">
@@ -176,6 +161,7 @@ export default function AnalyticsDashboardNew({
 					className="w-full mx-auto"
 					style={{ gridArea: 'avgVisitor' }}
 				>
+					{/* TODO: Show a currently active card - make the dot to be a blinking green color, looks nice */}
 					<p className="text-tremor-default text-dark-tremor-content">
 						Avg. Visitors/day
 					</p>
@@ -184,43 +170,36 @@ export default function AnalyticsDashboardNew({
 					</p>
 				</Card>
 
-				<div
-					className="w-full flex flex-col justify-between relative select-none"
+				<Card
+					className="w-full mx-auto"
 					style={{ gridArea: 'selectClick' }}
 				>
-					<p className="text-xl font-bold mb-2">Select Click Event</p>
-					<Card
-						className="p-4 cursor-pointer"
-						onClick={() => setDropdownOpen(!dropdownOpen)}
+					<label
+						htmlFor="clickEventSelect"
+						className="text-tremor-default text-dark-tremor-content mb-2"
 					>
-						<p className="text-xl font-semibold text-dark-tremor-content">
-							{clickEventData.selectedEvent?.name}
-						</p>
-					</Card>
-
-					{dropdownOpen && (
-						<div
-							className={`absolute top-[100%] flex flex-col w-[90%] p-2 rounded-lg shadow-xl z-[900] 
-                                bg-white dark:bg-gray-800 divide-y dark:divide-gray-700 right-0
-                            `}
-						>
-							{clickEventList.map((el) => (
-								<button
-									key={el?.key}
-									className="relative font-bold px-1 py-4 sm:px-4 sm:py-2 text-sm 
-                                        text-gray-700 dark:text-dark-tremor-content transition-all delay-100 hover:text-gray-900 dark:hover:text-gray-200 text-left"
-								>
-									<span
-										className="relative z-10"
-										onClick={() => handleEventSelection(el)}
-									>
-										{el.name}
-									</span>
-								</button>
-							))}
-						</div>
-					)}
-				</div>
+						Select Click Event
+					</label>
+					<Select
+						id="clickEventSelect"
+						value={clickEventData.selectedEvent?.key || ''}
+						onValueChange={(value) => {
+							const selectedEvent = clickEventList.find(
+								(event) => event.key === value,
+							);
+							if (selectedEvent) {
+								handleEventSelection(selectedEvent);
+							}
+						}}
+						className="mt-2"
+					>
+						{clickEventList.map((event) => (
+							<SelectItem key={event.key} value={event.key}>
+								{event.name}
+							</SelectItem>
+						))}
+					</Select>
+				</Card>
 
 				<Card
 					className="w-full mx-auto"
@@ -259,54 +238,42 @@ export default function AnalyticsDashboardNew({
 					</Card>
 				</div>
 
-				<Card style={{ gridArea: 'chartVisitor' }}>
-					<h3 className="text-lg font-mediummb-4">
-						Visitors by Date
-					</h3>
-					{analyticsData.pageViews ? (
-						<BarChart
-							showAnimation
-							categories={['visitors']}
-							data={analyticsData.pageViews.map((item) => ({
-								name: item.date,
-								visitors: item.events.reduce(
-									(acc, curr) =>
-										acc + Object.values(curr)[0]!,
-									0,
-								),
-							}))}
-							index="name"
-							colors={['blue']}
-							allowDecimals={false}
+				<div style={{ gridArea: 'chartVisitor' }}>
+					{analyticsData.pageViews && (
+						<EventsBarChart
+							title="Visitors by Date"
+							data={analyticsData.pageViews}
+							categoryName="visitors"
+							color="blue"
 						/>
-					) : null}
-				</Card>
+					)}
+				</div>
 
-				<Card style={{ gridArea: 'chartClick' }}>
-					{clickEventData.filteredEvents.length > 0 ? (
-						<BarChart
-							showAnimation
-							categories={['clicks']}
-							data={clickEventData.filteredEvents.map((item) => ({
-								name: item.date,
-								clicks: item.events.reduce(
-									(acc, curr) =>
-										acc + Object.values(curr)[0]!,
-									0,
-								),
-							}))}
-							index="name"
-							colors={['teal']}
-							allowDecimals={false}
+				<div style={{ gridArea: 'chartClick' }}>
+					{clickEventData.filteredEvents?.length > 0 && (
+						<EventsBarChart
+							title={`${
+								clickEventData.selectedEvent?.name ||
+								'Click Events'
+							} by Date`}
+							data={clickEventData.filteredEvents}
+							categoryName="clicks"
+							color="teal"
 						/>
-					) : null}
-				</Card>
+					)}
+				</div>
 			</div>
 
 			{/* Page Views Chart */}
 			{analyticsData.pageViews && (
 				<PageViewsChart data={analyticsData.pageViews} />
 			)}
+
+			{/* TODO: Show user retention graph */}
 		</div>
 	);
 }
+
+// TODO: Once the chart changes are done, integrate CI/CD to deploy the changes automatically
+// This will ensure that the latest analytics dashboard is always available to users.
+// Consider using a CI/CD tool like GitHub Actions or CircleCI to automate the deployment process
