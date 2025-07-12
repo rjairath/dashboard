@@ -1,6 +1,7 @@
 export const analyticsTypeEnum = {
 	pageView: 'pageView',
 	clickEvent: 'clickEvent',
+	retention: 'retention',
 } as const;
 
 export type AnalyticsType =
@@ -28,6 +29,7 @@ export type BatchAnalyticsResponse = {
 export type AnalyticsData = {
 	pageViews?: AnalyticsResponse;
 	clickEvents?: AnalyticsResponse;
+	retentionEvents?: AnalyticsResponse;
 	stats: {
 		avgVisitorsPerDay: string;
 		totalVisitors: number;

@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, Select, SelectItem } from '@tremor/react';
+import { Card, Select, SelectItem, Divider } from '@tremor/react';
 import { useState, useEffect } from 'react';
 import { clickEventList } from '@/constants';
 import { getDate, findEventByKey, getValueFromKey } from '@/utils';
@@ -13,7 +13,9 @@ import {
 } from '@/types/Analytics';
 import PageViewsChart from './AnalyticsCharts/PageViewsChart';
 import EventsBarChart from './AnalyticsCharts/EventsBarChart';
+import UserRetentionChart from './AnalyticsCharts/UserRetentionChart';
 import { CurrentlyActiveUsersCard } from './AnalyticsCharts/CurrentlyActiveUsersCard';
+import Shimmer from './Shimmer';
 
 export default function AnalyticsDashboardNew({
 	trackingDays,
@@ -41,58 +43,85 @@ export default function AnalyticsDashboardNew({
 	// Active users state
 	const [activeUsers, setActiveUsers] = useState<number>(0);
 
+	// Loading state
+	const [loading, setLoading] = useState<boolean>(true);
+
+	// Error state
+	const [error, setError] = useState<string | null>(null);
+
 	const fetchData = async () => {
 		const origin = window.location.origin;
 
-		// Fetch page views and click events in parallel
-		const [pageViews, clickEvents, currentActive] = await Promise.all([
-			retrieveDaysBatch(origin, analyticsTypeEnum.pageView, trackingDays),
-			retrieveDaysBatch(
-				origin,
-				analyticsTypeEnum.clickEvent,
-				trackingDays,
-			),
-			getActiveVisitors(origin),
-		]);
+		setLoading(true); // Set loading to true when starting data fetch
+		setError(null); // Reset error state
 
-		// Update active users count
-		setActiveUsers(currentActive);
-
-		// Calculate statistics
-		const todayFormatted = getDate(0);
-
-		// Calculate visitors today
-		const visitorsToday = pageViews
-			?.filter((item) => item.date === todayFormatted)
-			?.reduce(
-				(acc, curr) =>
-					acc +
-					curr.events.reduce(
-						(sum, event) => sum + Object.values(event)[0]!,
-						0,
+		try {
+			// Fetch page views, click events, and retention data in parallel
+			const [pageViews, clickEvents, retentionEvents, currentActive] =
+				await Promise.all([
+					retrieveDaysBatch(
+						origin,
+						analyticsTypeEnum.pageView,
+						trackingDays,
 					),
-				0,
-			);
+					retrieveDaysBatch(
+						origin,
+						analyticsTypeEnum.clickEvent,
+						trackingDays,
+					),
+					retrieveDaysBatch(
+						origin,
+						analyticsTypeEnum.retention,
+						trackingDays,
+					),
+					getActiveVisitors(origin),
+				]);
 
-		// Calculate total page views and average
-		let totalPageViews = 0;
-		pageViews?.forEach((item) => {
-			item.events?.forEach((eventEntry) => {
-				totalPageViews += Object.values(eventEntry)[0]!;
+			// Update active users count
+			setActiveUsers(currentActive);
+
+			// Calculate statistics
+			const todayFormatted = getDate(0);
+
+			// Calculate visitors today
+			const visitorsToday = pageViews
+				?.filter((item) => item.date === todayFormatted)
+				?.reduce(
+					(acc, curr) =>
+						acc +
+						curr.events.reduce(
+							(sum, event) => sum + Object.values(event)[0]!,
+							0,
+						),
+					0,
+				);
+
+			// Calculate total page views and average
+			let totalPageViews = 0;
+			pageViews?.forEach((item) => {
+				item.events?.forEach((eventEntry) => {
+					totalPageViews += Object.values(eventEntry)[0]!;
+				});
 			});
-		});
 
-		const averagePageViews = (totalPageViews / trackingDays).toFixed(1);
+			const averagePageViews = (totalPageViews / trackingDays).toFixed(1);
 
-		// Update analytics data state
-		setAnalyticsData({
-			pageViews,
-			clickEvents,
-			stats: {
-				avgVisitorsPerDay: averagePageViews,
-				totalVisitors: visitorsToday,
-			},
-		});
+			// Update analytics data state
+			setAnalyticsData({
+				pageViews,
+				clickEvents,
+				retentionEvents,
+				stats: {
+					avgVisitorsPerDay: averagePageViews,
+					totalVisitors: visitorsToday,
+				},
+			});
+		} catch (err) {
+			console.error('Error fetching analytics data:', err);
+			setError('Failed to load analytics data. Please try again later.');
+		} finally {
+			setLoading(false); // Set loading to false after data is fetched
+		}
 	};
 
 	// Polling for active users
@@ -187,17 +216,29 @@ export default function AnalyticsDashboardNew({
 			<div className="grid-mobile sm:grid-desktop w-full mx-auto grid-cols-1 sm:grid-cols-2 gap-6">
 				{/* Active Users Card */}
 				<div style={{ gridArea: 'activeUsers' }}>
-					<CurrentlyActiveUsersCard activeUsers={activeUsers} />
+					{loading ? (
+						<Card className="h-full">
+							<Shimmer height="80px" className="p-0 border-0" />
+						</Card>
+					) : (
+						<CurrentlyActiveUsersCard activeUsers={activeUsers} />
+					)}
 				</div>
 
 				<div style={{ gridArea: 'chartVisitor' }}>
-					{analyticsData.pageViews && (
-						<EventsBarChart
-							title="Visitors by Date"
-							data={analyticsData.pageViews}
-							categoryName="visitors"
-							color="blue"
-						/>
+					{loading ? (
+						<Card className="h-[230px]">
+							<Shimmer height="180px" className="p-0 border-0" />
+						</Card>
+					) : (
+						analyticsData.pageViews && (
+							<EventsBarChart
+								title="Visitors by Date"
+								data={analyticsData.pageViews}
+								categoryName="visitors"
+								color="blue"
+							/>
+						)
 					)}
 				</div>
 
@@ -206,22 +247,33 @@ export default function AnalyticsDashboardNew({
 					style={{ gridArea: 'visitorMeta' }}
 				>
 					<Card className="w-1/2 mx-auto">
-						{/* TODO: Show a currently active card - make the dot to be a blinking green color, looks nice */}
-						<p className="text-tremor-default text-dark-tremor-content">
-							Avg. Visitors/day
-						</p>
-						<p className="text-3xl text-dark-tremor-content font-semibold">
-							{analyticsData.stats.avgVisitorsPerDay}
-						</p>
+						{loading ? (
+							<Shimmer height="80px" className="p-0 border-0" />
+						) : (
+							<>
+								<p className="text-tremor-default text-dark-tremor-content">
+									Avg. Visitors/day
+								</p>
+								<p className="text-3xl text-dark-tremor-content font-semibold">
+									{analyticsData.stats.avgVisitorsPerDay}
+								</p>
+							</>
+						)}
 					</Card>
 
 					<Card className="w-1/2 mx-auto">
-						<p className="text-tremor-default text-dark-tremor-content">
-							Total Visitors Today
-						</p>
-						<p className="text-3xl text-dark-tremor-content font-semibold">
-							{analyticsData.stats.totalVisitors}
-						</p>
+						{loading ? (
+							<Shimmer height="80px" className="p-0 border-0" />
+						) : (
+							<>
+								<p className="text-tremor-default text-dark-tremor-content">
+									Total Visitors Today
+								</p>
+								<p className="text-3xl text-dark-tremor-content font-semibold">
+									{analyticsData.stats.totalVisitors}
+								</p>
+							</>
+						)}
 					</Card>
 				</div>
 
@@ -229,44 +281,59 @@ export default function AnalyticsDashboardNew({
 					className="w-full mx-auto"
 					style={{ gridArea: 'selectClick' }}
 				>
-					<label
-						htmlFor="clickEventSelect"
-						className="text-tremor-default text-dark-tremor-content mb-2"
-					>
-						Select Click Event
-					</label>
-					<Select
-						id="clickEventSelect"
-						value={clickEventData.selectedEvent?.key || ''}
-						onValueChange={(value) => {
-							const selectedEvent = clickEventList.find(
-								(event) => event.key === value,
-							);
-							if (selectedEvent) {
-								handleEventSelection(selectedEvent);
-							}
-						}}
-						className="mt-2"
-					>
-						{clickEventList.map((event) => (
-							<SelectItem key={event.key} value={event.key}>
-								{event.name}
-							</SelectItem>
-						))}
-					</Select>
+					{loading ? (
+						<Shimmer height="80px" className="p-0 border-0" />
+					) : (
+						<>
+							<label
+								htmlFor="clickEventSelect"
+								className="text-tremor-default text-dark-tremor-content mb-2"
+							>
+								Select Click Event
+							</label>
+							<Select
+								id="clickEventSelect"
+								value={clickEventData.selectedEvent?.key || ''}
+								onValueChange={(value) => {
+									const selectedEvent = clickEventList.find(
+										(event) => event.key === value,
+									);
+									if (selectedEvent) {
+										handleEventSelection(selectedEvent);
+									}
+								}}
+								className="mt-2"
+							>
+								{clickEventList.map((event) => (
+									<SelectItem
+										key={event.key}
+										value={event.key}
+									>
+										{event.name}
+									</SelectItem>
+								))}
+							</Select>
+						</>
+					)}
 				</Card>
 
 				<div style={{ gridArea: 'chartClick' }}>
-					{clickEventData.filteredEvents?.length > 0 && (
-						<EventsBarChart
-							title={`${
-								clickEventData.selectedEvent?.name ||
-								'Click Events'
-							} by Date`}
-							data={clickEventData.filteredEvents}
-							categoryName="clicks"
-							color="teal"
-						/>
+					{loading ? (
+						<Card className="h-[230px]">
+							<Shimmer height="180px" className="p-0 border-0" />
+						</Card>
+					) : (
+						clickEventData.filteredEvents?.length > 0 && (
+							<EventsBarChart
+								title={`${
+									clickEventData.selectedEvent?.name ||
+									'Click Events'
+								} by Date`}
+								data={clickEventData.filteredEvents}
+								categoryName="clicks"
+								color="teal"
+							/>
+						)
 					)}
 				</div>
 
@@ -275,33 +342,81 @@ export default function AnalyticsDashboardNew({
 					style={{ gridArea: 'clickMeta' }}
 				>
 					<Card className="w-1/2 mx-auto">
-						<p className="text-tremor-default text-dark-tremor-content">
-							Avg. clicks/day
-						</p>
-						<p className="text-3xl text-dark-tremor-content font-semibold">
-							{(
-								clickEventData.stats.totalClicks / trackingDays
-							).toFixed(1)}
-						</p>
+						{loading ? (
+							<Shimmer height="80px" className="p-0 border-0" />
+						) : (
+							<>
+								<p className="text-tremor-default text-dark-tremor-content">
+									Avg. clicks/day
+								</p>
+								<p className="text-3xl text-dark-tremor-content font-semibold">
+									{(
+										clickEventData.stats.totalClicks /
+										trackingDays
+									).toFixed(1)}
+								</p>
+							</>
+						)}
 					</Card>
 
 					<Card className="w-1/2 mx-auto">
-						<p className="text-tremor-default text-dark-tremor-content">
-							Total Clicks Today
-						</p>
-						<p className="text-3xl text-dark-tremor-content font-semibold">
-							{clickEventData.stats.clicksToday}
-						</p>
+						{loading ? (
+							<Shimmer height="80px" className="p-0 border-0" />
+						) : (
+							<>
+								<p className="text-tremor-default text-dark-tremor-content">
+									Total Clicks Today
+								</p>
+								<p className="text-3xl text-dark-tremor-content font-semibold">
+									{clickEventData.stats.clicksToday}
+								</p>
+							</>
+						)}
 					</Card>
 				</div>
 			</div>
 
+			{/* Divider with descriptive text for detailed analytics section */}
+			<div className="mt-8 mb-6">
+				<div className="flex items-center gap-4">
+					<h2 className="text-xl font-semibold text-black dark:text-white whitespace-nowrap">
+						Detailed Analytics
+					</h2>
+					<Divider className="flex-grow bg-gradient-to-r from-blue-500/40 to-blue-500/0 dark:from-blue-400/40 dark:to-blue-400/0 h-px my-1" />
+				</div>
+				<p className="text-sm text-zinc-600 dark:text-zinc-500 mt-1 max-w-md">
+					Comprehensive data visualizations for deeper insights
+				</p>
+			</div>
+
 			{/* Page Views Chart */}
-			{analyticsData.pageViews && (
-				<PageViewsChart data={analyticsData.pageViews} />
+			{loading ? (
+				<Card className="h-[350px]">
+					<Shimmer height="302px" className="p-0 border-0" />
+				</Card>
+			) : (
+				analyticsData.pageViews && (
+					<PageViewsChart data={analyticsData.pageViews} />
+				)
 			)}
 
-			{/* TODO: Show user retention graph */}
+			{/* User Retention Chart */}
+			{loading ? (
+				<Card className="h-[350px]">
+					<Shimmer height="302px" className="p-0 border-0" />
+				</Card>
+			) : (
+				analyticsData.retentionEvents && (
+					<UserRetentionChart data={analyticsData.retentionEvents} />
+				)
+			)}
+
+			{/* Error message display */}
+			{error && (
+				<Card className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
+					<p className="text-red-600">{error}</p>
+				</Card>
+			)}
 		</div>
 	);
 }
