@@ -105,3 +105,22 @@ export const getAnalytics = async (
 		throw error;
 	}
 };
+
+export const getActiveVisitors = async (originUrl: string) => {
+	try {
+		const response = await fetch(`${originUrl}/api/analytics/active`);
+
+		if (!response.ok) {
+			const errorResponse = await response.json();
+			throw new Error(
+				errorResponse.message || 'Error fetching active visitors',
+			);
+		}
+
+		const result = await response.json();
+		return result.activeUsers;
+	} catch (error) {
+		console.error('Error fetching active visitors:', error);
+		return 0; // Default to 0 on error
+	}
+};

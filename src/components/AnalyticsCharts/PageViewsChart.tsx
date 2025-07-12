@@ -96,7 +96,6 @@ const PageViewsChart = ({ data }: PageViewsChartProps) => {
 				showLegend={true}
 				stack={true}
 				showAnimation={true}
-				connectNulls={true}
 				curveType="monotone"
 				showGridLines={true}
 				showXAxis={true}

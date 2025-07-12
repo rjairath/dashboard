@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { clickEventList } from '@/constants';
 import { getDate, findEventByKey, getValueFromKey } from '@/utils';
 import { retrieveDaysBatch } from '@/utils/analytics';
+import { getActiveVisitors } from '@/lib/api';
 import {
 	analyticsTypeEnum,
 	type AnalyticsData,
@@ -12,6 +13,7 @@ import {
 } from '@/types/Analytics';
 import PageViewsChart from './AnalyticsCharts/PageViewsChart';
 import EventsBarChart from './AnalyticsCharts/EventsBarChart';
+import { CurrentlyActiveUsersCard } from './AnalyticsCharts/CurrentlyActiveUsersCard';
 
 export default function AnalyticsDashboardNew({
 	trackingDays,
@@ -36,18 +38,25 @@ export default function AnalyticsDashboardNew({
 		},
 	});
 
+	// Active users state
+	const [activeUsers, setActiveUsers] = useState<number>(0);
+
 	const fetchData = async () => {
 		const origin = window.location.origin;
 
 		// Fetch page views and click events in parallel
-		const [pageViews, clickEvents] = await Promise.all([
+		const [pageViews, clickEvents, currentActive] = await Promise.all([
 			retrieveDaysBatch(origin, analyticsTypeEnum.pageView, trackingDays),
 			retrieveDaysBatch(
 				origin,
 				analyticsTypeEnum.clickEvent,
 				trackingDays,
 			),
+			getActiveVisitors(origin),
 		]);
+
+		// Update active users count
+		setActiveUsers(currentActive);
 
 		// Calculate statistics
 		const todayFormatted = getDate(0);
@@ -85,6 +94,25 @@ export default function AnalyticsDashboardNew({
 			},
 		});
 	};
+
+	// Polling for active users
+	useEffect(() => {
+		fetchData();
+
+		// Set up polling every 30 seconds for active users only
+		const pollingInterval = setInterval(async () => {
+			try {
+				const activeCount = await getActiveVisitors(
+					window.location.origin,
+				);
+				setActiveUsers(activeCount);
+			} catch (error) {
+				console.error('Error polling for active users:', error);
+			}
+		}, 30000);
+
+		return () => clearInterval(pollingInterval);
+	}, []);
 
 	// Handle click event selection
 	const handleEventSelection = (selectedEvent: {
@@ -157,18 +185,45 @@ export default function AnalyticsDashboardNew({
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="grid-mobile sm:grid-desktop w-full mx-auto grid-cols-1 sm:grid-cols-2 gap-6">
-				<Card
-					className="w-full mx-auto"
-					style={{ gridArea: 'avgVisitor' }}
+				{/* Active Users Card */}
+				<div style={{ gridArea: 'activeUsers' }}>
+					<CurrentlyActiveUsersCard activeUsers={activeUsers} />
+				</div>
+
+				<div style={{ gridArea: 'chartVisitor' }}>
+					{analyticsData.pageViews && (
+						<EventsBarChart
+							title="Visitors by Date"
+							data={analyticsData.pageViews}
+							categoryName="visitors"
+							color="blue"
+						/>
+					)}
+				</div>
+
+				<div
+					className="w-full flex justify-between gap-4"
+					style={{ gridArea: 'visitorMeta' }}
 				>
-					{/* TODO: Show a currently active card - make the dot to be a blinking green color, looks nice */}
-					<p className="text-tremor-default text-dark-tremor-content">
-						Avg. Visitors/day
-					</p>
-					<p className="text-3xl text-dark-tremor-content font-semibold">
-						{analyticsData.stats.avgVisitorsPerDay}
-					</p>
-				</Card>
+					<Card className="w-1/2 mx-auto">
+						{/* TODO: Show a currently active card - make the dot to be a blinking green color, looks nice */}
+						<p className="text-tremor-default text-dark-tremor-content">
+							Avg. Visitors/day
+						</p>
+						<p className="text-3xl text-dark-tremor-content font-semibold">
+							{analyticsData.stats.avgVisitorsPerDay}
+						</p>
+					</Card>
+
+					<Card className="w-1/2 mx-auto">
+						<p className="text-tremor-default text-dark-tremor-content">
+							Total Visitors Today
+						</p>
+						<p className="text-3xl text-dark-tremor-content font-semibold">
+							{analyticsData.stats.totalVisitors}
+						</p>
+					</Card>
+				</div>
 
 				<Card
 					className="w-full mx-auto"
@@ -201,17 +256,19 @@ export default function AnalyticsDashboardNew({
 					</Select>
 				</Card>
 
-				<Card
-					className="w-full mx-auto"
-					style={{ gridArea: 'totalVisitor' }}
-				>
-					<p className="text-tremor-default text-dark-tremor-content">
-						Total Visitors Today
-					</p>
-					<p className="text-3xl text-dark-tremor-content font-semibold">
-						{analyticsData.stats.totalVisitors}
-					</p>
-				</Card>
+				<div style={{ gridArea: 'chartClick' }}>
+					{clickEventData.filteredEvents?.length > 0 && (
+						<EventsBarChart
+							title={`${
+								clickEventData.selectedEvent?.name ||
+								'Click Events'
+							} by Date`}
+							data={clickEventData.filteredEvents}
+							categoryName="clicks"
+							color="teal"
+						/>
+					)}
+				</div>
 
 				<div
 					className="w-full flex justify-between gap-4"
@@ -236,31 +293,6 @@ export default function AnalyticsDashboardNew({
 							{clickEventData.stats.clicksToday}
 						</p>
 					</Card>
-				</div>
-
-				<div style={{ gridArea: 'chartVisitor' }}>
-					{analyticsData.pageViews && (
-						<EventsBarChart
-							title="Visitors by Date"
-							data={analyticsData.pageViews}
-							categoryName="visitors"
-							color="blue"
-						/>
-					)}
-				</div>
-
-				<div style={{ gridArea: 'chartClick' }}>
-					{clickEventData.filteredEvents?.length > 0 && (
-						<EventsBarChart
-							title={`${
-								clickEventData.selectedEvent?.name ||
-								'Click Events'
-							} by Date`}
-							data={clickEventData.filteredEvents}
-							categoryName="clicks"
-							color="teal"
-						/>
-					)}
 				</div>
 			</div>
 
