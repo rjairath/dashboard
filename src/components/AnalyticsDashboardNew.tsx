@@ -16,6 +16,8 @@ import EventsBarChart from './AnalyticsCharts/EventsBarChart';
 import UserRetentionChart from './AnalyticsCharts/UserRetentionChart';
 import { CurrentlyActiveUsersCard } from './AnalyticsCharts/CurrentlyActiveUsersCard';
 import Shimmer from './Shimmer';
+import { RefreshIcon } from './Icons/RefreshIcon';
+import { InfoIcon } from './Icons/InfoIcon';
 
 export default function AnalyticsDashboardNew({
 	trackingDays,
@@ -213,6 +215,32 @@ export default function AnalyticsDashboardNew({
 
 	return (
 		<div className="flex flex-col gap-6">
+			{/* Error message display - moved to top for better visibility */}
+			{error && (
+				<Card className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+					<div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+						<InfoIcon width={16} height={16} />
+						<p className=" font-medium">{error}</p>
+					</div>
+				</Card>
+			)}
+
+			{/* Header with reload button */}
+			<div className="flex justify-between items-center mb-2">
+				<div className="text-sm text-zinc-600 dark:text-zinc-400">
+					Showing data for the last {trackingDays} days
+				</div>
+				<button
+					onClick={fetchData}
+					disabled={loading}
+					className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					aria-label="Refresh dashboard data"
+				>
+					<RefreshIcon width={16} height={16} />
+					{loading ? 'Refreshing...' : 'Refresh Data'}
+				</button>
+			</div>
+
 			<div className="grid-mobile sm:grid-desktop w-full mx-auto grid-cols-1 sm:grid-cols-2 gap-6">
 				{/* Active Users Card */}
 				<div style={{ gridArea: 'activeUsers' }}>
@@ -409,13 +437,6 @@ export default function AnalyticsDashboardNew({
 				analyticsData.retentionEvents && (
 					<UserRetentionChart data={analyticsData.retentionEvents} />
 				)
-			)}
-
-			{/* Error message display */}
-			{error && (
-				<Card className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
-					<p className="text-red-600">{error}</p>
-				</Card>
 			)}
 		</div>
 	);
