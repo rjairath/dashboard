@@ -42,13 +42,8 @@ export default function AnalyticsDashboardNew({
 		},
 	});
 
-	// Active users state
 	const [activeUsers, setActiveUsers] = useState<number>(0);
-
-	// Loading state
 	const [loading, setLoading] = useState<boolean>(true);
-
-	// Error state
 	const [error, setError] = useState<string | null>(null);
 
 	const fetchData = async () => {
@@ -200,11 +195,6 @@ export default function AnalyticsDashboardNew({
 			},
 		});
 	};
-
-	// Fetch data on component mount
-	useEffect(() => {
-		fetchData();
-	}, []);
 
 	// Process click event data when analytics data changes
 	useEffect(() => {
