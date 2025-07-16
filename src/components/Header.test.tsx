@@ -41,7 +41,7 @@ describe('Header Component', () => {
 	});
 
 	test('renders the header component', () => {
-		render(<Header />);
+		render(mockHeaderComponent);
 
 		// Check if the header container exists
 		const headerElement = document.querySelector('#header');
